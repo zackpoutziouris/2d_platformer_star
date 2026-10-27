@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+@onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
+
 @export_category("Movement")
 @export var move_speed: float = 250.0
 @export var acceleration: float = 1800.0
@@ -37,3 +39,13 @@ func _physics_process(delta: float) -> void:
 		velocity.y = jump_velocity
 
 	move_and_slide()
+
+	# Flip to face the movement direction.
+	if direction != 0.0:
+		sprite.flip_h = direction < 0.0
+
+	# Choose the animation.
+	if direction != 0.0:
+		sprite.play("walk")
+	else:
+		sprite.play("idle")
