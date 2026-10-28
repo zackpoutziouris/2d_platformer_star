@@ -47,8 +47,8 @@ func _update_animation(direction: float) -> void:
 	if direction != 0.0:
 		animation_handle.scale.x = -1.0 if direction < 0.0 else 1.0
 
-	# Pick the animation.
-	if direction != 0.0:
+	# Play walk only while actually moving horizontally.
+	if absf(velocity.x) > 0.0:
 		animation_player.play("walk")
 	else:
 		animation_player.play("idle")
