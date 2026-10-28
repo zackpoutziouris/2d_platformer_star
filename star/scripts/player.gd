@@ -1,13 +1,14 @@
 extends CharacterBody2D
 
-@onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
-
 @export_category("Movement")
 @export var move_speed: float = 250.0
 @export var acceleration: float = 1800.0
 @export var deceleration: float = 2200.0
 @export var jump_velocity: float = -420.0
 @export var gravity_multiplier: float = 1.0
+
+@onready var animation_handle: Node2D = $AnimationHandle
+@onready var animation_player: AnimationPlayer = $AnimationHandle/AnimationPlayer
 
 var gravity: float = float(
 	ProjectSettings.get_setting("physics/2d/default_gravity")
@@ -39,13 +40,15 @@ func _physics_process(delta: float) -> void:
 		velocity.y = jump_velocity
 
 	move_and_slide()
+	_update_animation(direction)
 
-	# Flip to face the movement direction.
+func _update_animation(direction: float) -> void:
+	# Face the direction of input by mirroring the handle around its origin.
 	if direction != 0.0:
-		sprite.flip_h = direction < 0.0
+		animation_handle.scale.x = -1.0 if direction < 0.0 else 1.0
 
-	# Choose the animation.
+	# Pick the animation.
 	if direction != 0.0:
-		sprite.play("walk")
+		animation_player.play("walk")
 	else:
-		sprite.play("idle")
+		animation_player.play("idle")

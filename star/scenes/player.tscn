@@ -3,74 +3,81 @@
 [ext_resource type="Script" uid="uid://b2gw7s7q182gr" path="res://scripts/player.gd" id="1_3vyb7"]
 [ext_resource type="Texture2D" uid="uid://cmibncu5ca0t5" path="res://assets/Sprite-0004-Sheet.png" id="2_g2els"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_qhqgy"]
-atlas = ExtResource("2_g2els")
-region = Rect2(0, 16, 16, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_dqkch"]
-atlas = ExtResource("2_g2els")
-region = Rect2(16, 16, 16, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_qlg0r"]
-atlas = ExtResource("2_g2els")
-region = Rect2(0, 0, 16, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_tuyoq"]
-atlas = ExtResource("2_g2els")
-region = Rect2(16, 0, 16, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_fjrip"]
-atlas = ExtResource("2_g2els")
-region = Rect2(32, 0, 16, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_smehm"]
-atlas = ExtResource("2_g2els")
-region = Rect2(48, 0, 16, 16)
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_ur7pv"]
-animations = [{
-"frames": [{
-"duration": 2.0,
-"texture": SubResource("AtlasTexture_qhqgy")
-}, {
-"duration": 2.0,
-"texture": SubResource("AtlasTexture_dqkch")
-}],
-"loop": true,
-"name": &"idle",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_qlg0r")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_tuyoq")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_fjrip")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_smehm")
-}],
-"loop": true,
-"name": &"walk",
-"speed": 5.0
-}]
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qhqgy"]
 size = Vector2(11, 14)
+
+[sub_resource type="Animation" id="Animation_g2els"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Rect2(0, 2, 13, 16)]
+}
+
+[sub_resource type="Animation" id="Animation_qhqgy"]
+resource_name = "idle"
+loop_mode = 1
+step = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Rect2(0, 18, 13, 14), Rect2(16, 19, 13, 13)]
+}
+
+[sub_resource type="Animation" id="Animation_dqkch"]
+resource_name = "idle"
+length = 0.75
+loop_mode = 1
+step = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5, 0.75),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Rect2(16, 3, 14, 13), Rect2(32, 2, 13, 14), Rect2(48, 3, 14, 13), Rect2(64, 2, 13, 14)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_qlg0r"]
+_data = {
+&"RESET": SubResource("Animation_g2els"),
+&"idle": SubResource("Animation_qhqgy"),
+&"walk": SubResource("Animation_dqkch")
+}
 
 [node name="Player" type="CharacterBody2D" unique_id=1405871052]
 script = ExtResource("1_3vyb7")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1711751813]
-sprite_frames = SubResource("SpriteFrames_ur7pv")
-animation = &"idle"
-
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=138167211]
-position = Vector2(-1.5, 1)
 shape = SubResource("RectangleShape2D_qhqgy")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1611647242]
 zoom = Vector2(4, 4)
+
+[node name="AnimationHandle" type="Node2D" parent="." unique_id=291551407]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimationHandle" unique_id=71640850]
+libraries/ = SubResource("AnimationLibrary_qlg0r")
+
+[node name="Sprite2D" type="Sprite2D" parent="AnimationHandle" unique_id=1277177363]
+texture = ExtResource("2_g2els")
+region_enabled = true
+region_rect = Rect2(0, 2, 13, 16)
