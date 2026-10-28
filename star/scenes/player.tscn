@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://cmibncu5ca0t5" path="res://assets/Sprite-0004-Sheet.png" id="2_g2els"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qhqgy"]
-size = Vector2(11, 14)
+size = Vector2(12.5, 14)
 
 [sub_resource type="Animation" id="Animation_g2els"]
 length = 0.001
@@ -19,6 +19,22 @@ tracks/0/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [Rect2(0, 2, 13, 16)]
+}
+
+[sub_resource type="Animation" id="Animation_tuyoq"]
+resource_name = "fall"
+step = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Rect2(0, 49, 13, 15)]
 }
 
 [sub_resource type="Animation" id="Animation_qhqgy"]
@@ -36,6 +52,22 @@ tracks/0/keys = {
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [Rect2(0, 18, 13, 14), Rect2(16, 19, 13, 13)]
+}
+
+[sub_resource type="Animation" id="Animation_qlg0r"]
+resource_name = "jump"
+step = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Rect2(0, 35, 13, 13)]
 }
 
 [sub_resource type="Animation" id="Animation_dqkch"]
@@ -59,7 +91,9 @@ tracks/0/keys = {
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_qlg0r"]
 _data = {
 &"RESET": SubResource("Animation_g2els"),
+&"fall": SubResource("Animation_tuyoq"),
 &"idle": SubResource("Animation_qhqgy"),
+&"jump": SubResource("Animation_qlg0r"),
 &"walk": SubResource("Animation_dqkch")
 }
 
@@ -70,7 +104,7 @@ script = ExtResource("1_3vyb7")
 shape = SubResource("RectangleShape2D_qhqgy")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1611647242]
-zoom = Vector2(3.5, 3.5)
+zoom = Vector2(3.2, 3.2)
 
 [node name="AnimationHandle" type="Node2D" parent="." unique_id=291551407]
 

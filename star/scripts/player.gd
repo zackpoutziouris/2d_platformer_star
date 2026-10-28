@@ -47,8 +47,15 @@ func _update_animation(direction: float) -> void:
 	if direction != 0.0:
 		animation_handle.scale.x = -1.0 if direction < 0.0 else 1.0
 
-	# Play walk only while actually moving horizontally.
+	# Moving horizontally: always play walk, even in the air.
 	if absf(velocity.x) > 0.0:
 		animation_player.play("walk")
+	# Not moving horizontally and airborne: jump or fall.
+	elif not is_on_floor():
+		if velocity.y < 0.0:
+			animation_player.play("jump")
+		else:
+			animation_player.play("fall")
+	# Not moving horizontally and grounded.
 	else:
 		animation_player.play("idle")
