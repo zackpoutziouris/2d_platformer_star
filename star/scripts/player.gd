@@ -14,6 +14,11 @@ extends CharacterBody2D
 @export var max_air_dashes: int = 1
 @export var dash_ignores_gravity: bool = true
 
+@export_category("Crouch")
+@export var crouch_speed_multiplier: float = 0.5
+@export var stand_clearance: float = 3.0 # standing is 2px taller than crouching
+var is_crouching: bool = false
+
 @onready var animation_handle: Node2D = $AnimationHandle
 @onready var animation_player: AnimationPlayer = $AnimationHandle/AnimationPlayer
 
@@ -36,7 +41,8 @@ func _physics_process(delta: float) -> void:
 	# Facing is locked while dashing.
 	if direction != 0.0 and not is_dashing:
 		facing = signf(direction)
-
+	
+	_update_crouch()
 	_try_start_dash()
 
 	if is_dashing:
@@ -54,12 +60,14 @@ func _process_movement(delta: float, direction: float) -> void:
 		if velocity.y > 0.0:
 			g *= 1.1
 		velocity.y += g * delta
-
+	
+	var current_speed := move_speed * (crouch_speed_multiplier if is_crouching else 1.0)
+	
 	# Horizontal movement.
 	if direction != 0.0:
 		velocity.x = move_toward(
 			velocity.x,
-			direction * move_speed,
+			direction * current_speed,
 			acceleration * delta
 		)
 	else:
@@ -77,10 +85,29 @@ func _process_movement(delta: float, direction: float) -> void:
 	if velocity.y < 0.0 and not Input.is_action_pressed("jump"):
 		velocity.y = maxf(velocity.y, jump_velocity * jump_cut_ratio)
 
+func _can_stand() -> bool:
+	return not test_move(global_transform, Vector2(0.0, -stand_clearance))
+
+func _update_crouch() -> void:
+	var wants_crouch := (
+		Input.is_action_pressed("crouch")
+		and is_on_floor()
+		and not is_dashing
+	)
+
+	if wants_crouch:
+		is_crouching = true
+	elif is_crouching and _can_stand():
+		is_crouching = false
+
 func _try_start_dash() -> void:
 	if is_dashing or not Input.is_action_just_pressed("dash"):
 		return
-
+	
+	# Can't dash out of a crouch if there's no room to stand.
+	if is_crouching and not _can_stand():
+		return
+	
 	# Dashing on the ground is free; dashing in the air uses a charge.
 	if not is_on_floor():
 		if air_dashes_left <= 0:
@@ -109,6 +136,8 @@ func _update_animation() -> void:
 	# Dash overrides everything for its whole duration.
 	if is_dashing:
 		animation_player.play("dash")
+	elif is_crouching:
+		animation_player.play("crouch")
 	# Moving horizontally: walk, even in the air.
 	elif absf(velocity.x) > 0.0:
 		animation_player.play("walk")
