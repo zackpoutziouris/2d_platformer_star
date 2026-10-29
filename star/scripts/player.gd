@@ -1,11 +1,12 @@
 extends CharacterBody2D
 
 @export_category("Movement")
-@export var move_speed: float = 250.0
+@export var move_speed: float = 140.0
 @export var acceleration: float = 1800.0
 @export var deceleration: float = 2200.0
-@export var jump_velocity: float = -420.0
-@export var gravity_multiplier: float = 1.0
+@export var jump_velocity: float = -280.0
+@export var gravity_multiplier: float = 0.80
+@export var jump_cut_ratio: float = 0.5
 
 @export_category("Dash")
 @export var dash_speed: float = 300.0
@@ -49,7 +50,10 @@ func _physics_process(delta: float) -> void:
 func _process_movement(delta: float, direction: float) -> void:
 	# Apply gravity while airborne.
 	if not is_on_floor():
-		velocity.y += gravity * gravity_multiplier * delta
+		var g := gravity * gravity_multiplier
+		if velocity.y > 0.0:
+			g *= 1.1
+		velocity.y += g * delta
 
 	# Horizontal movement.
 	if direction != 0.0:
@@ -68,6 +72,10 @@ func _process_movement(delta: float, direction: float) -> void:
 	# Jump only when grounded.
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		velocity.y = jump_velocity
+		
+	# Variable height: if jump is released while rising, cap the upward speed.
+	if velocity.y < 0.0 and not Input.is_action_pressed("jump"):
+		velocity.y = maxf(velocity.y, jump_velocity * jump_cut_ratio)
 
 func _try_start_dash() -> void:
 	if is_dashing or not Input.is_action_just_pressed("dash"):
