@@ -19,6 +19,11 @@ extends CharacterBody2D
 @export var stand_clearance: float = 3.0 # standing is 2px taller than crouching
 var is_crouching: bool = false
 
+@export_category("Sprint")
+@export var sprint_speed_multiplier: float = 1.6
+@export var sprint_animation_speed: float = 1.5
+var is_sprinting: bool = false
+
 @onready var animation_handle: Node2D = $AnimationHandle
 @onready var animation_player: AnimationPlayer = $AnimationHandle/AnimationPlayer
 
@@ -43,6 +48,7 @@ func _physics_process(delta: float) -> void:
 		facing = signf(direction)
 	
 	_update_crouch()
+	_update_sprint(direction)
 	_try_start_dash()
 
 	if is_dashing:
@@ -61,7 +67,11 @@ func _process_movement(delta: float, direction: float) -> void:
 			g *= 1.1
 		velocity.y += g * delta
 	
-	var current_speed := move_speed * (crouch_speed_multiplier if is_crouching else 1.0)
+	var current_speed := move_speed
+	if is_crouching:
+		current_speed *= crouch_speed_multiplier
+	elif is_sprinting:
+		current_speed *= sprint_speed_multiplier
 	
 	# Horizontal movement.
 	if direction != 0.0:
@@ -100,6 +110,14 @@ func _update_crouch() -> void:
 	elif is_crouching and _can_stand():
 		is_crouching = false
 
+func _update_sprint(direction: float) -> void:
+	is_sprinting = (
+		Input.is_action_pressed("sprint")
+		and direction != 0.0
+		and not is_crouching
+		and not is_dashing
+	)
+
 func _try_start_dash() -> void:
 	if is_dashing or not Input.is_action_just_pressed("dash"):
 		return
@@ -129,17 +147,26 @@ func _process_dash(delta: float) -> void:
 	if dash_time_left <= 0.0:
 		is_dashing = false
 
+func _is_moving_horizontally() -> bool:
+	return absf(get_real_velocity().x) > 30.0
+
 func _update_animation() -> void:
 	# Mirror the handle around its origin to face the right way.
 	animation_handle.scale.x = facing
+	animation_player.speed_scale = 1.0
 
 	# Dash overrides everything for its whole duration.
 	if is_dashing:
 		animation_player.play("dash")
 	elif is_crouching:
-		animation_player.play("crouch")
-	# Moving horizontally: walk, even in the air.
-	elif absf(velocity.x) > 0.0:
+		if _is_moving_horizontally():
+			animation_player.play("crouch-walk")
+		else:
+			animation_player.play("crouch")
+	# Moving horizontally: walk, faster while sprinting.
+	elif _is_moving_horizontally():
+		if is_sprinting:
+			animation_player.speed_scale = sprint_animation_speed
 		animation_player.play("walk")
 	# Not moving horizontally and airborne: jump or fall.
 	elif not is_on_floor():
