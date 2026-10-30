@@ -7,12 +7,22 @@ extends CharacterBody2D
 @export var jump_velocity: float = -280.0
 @export var gravity_multiplier: float = 0.80
 @export var jump_cut_ratio: float = 0.5
+@export var fall_gravity_multiplier: float = 1.1
+@export var max_fall_speed: float = 420.0
+
+@export_category("Air Control")
+@export var air_acceleration: float = 1000.0
+@export var air_turn_acceleration: float = 2400.0
+@export var air_drag: float = 125.0
+var air_speed_cap: float = 0.0
 
 @export_category("Dash")
 @export var dash_speed: float = 300.0
 @export var dash_duration: float = 0.3
 @export var max_air_dashes: int = 1
 @export var dash_ignores_gravity: bool = true
+@export var dash_air_drag: float = 500.0
+var dash_carry: bool = false
 
 @export_category("Crouch")
 @export var crouch_speed_multiplier: float = 0.5
@@ -20,7 +30,7 @@ extends CharacterBody2D
 var is_crouching: bool = false
 
 @export_category("Sprint")
-@export var sprint_speed_multiplier: float = 1.6
+@export var sprint_speed_multiplier: float = 1.4
 @export var sprint_animation_speed: float = 1.5
 var is_sprinting: bool = false
 
@@ -60,40 +70,67 @@ func _physics_process(delta: float) -> void:
 	_update_animation()
 
 func _process_movement(delta: float, direction: float) -> void:
-	# Apply gravity while airborne.
-	if not is_on_floor():
+	var on_floor := is_on_floor()
+
+	# Gravity: stronger when falling, with a terminal velocity.
+	if not on_floor:
 		var g := gravity * gravity_multiplier
 		if velocity.y > 0.0:
-			g *= 1.1
-		velocity.y += g * delta
-	
+			g *= fall_gravity_multiplier
+		velocity.y = minf(velocity.y + g * delta, max_fall_speed)
+
+	if on_floor:
+		_move_on_ground(delta, direction)
+	else:
+		_move_in_air(delta, direction)
+
+	# Jump only when grounded.
+	if Input.is_action_just_pressed("jump") and on_floor:
+		velocity.y = jump_velocity
+
+	# Variable height: if jump is released while rising, cap the upward speed.
+	if velocity.y < 0.0 and not Input.is_action_pressed("jump"):
+		velocity.y = maxf(velocity.y, jump_velocity * jump_cut_ratio)
+
+func _move_on_ground(delta: float, direction: float) -> void:
 	var current_speed := move_speed
 	if is_crouching:
 		current_speed *= crouch_speed_multiplier
 	elif is_sprinting:
 		current_speed *= sprint_speed_multiplier
-	
-	# Horizontal movement.
-	if direction != 0.0:
-		velocity.x = move_toward(
-			velocity.x,
-			direction * current_speed,
-			acceleration * delta
-		)
-	else:
-		velocity.x = move_toward(
-			velocity.x,
-			0.0,
-			deceleration * delta
-		)
 
-	# Jump only when grounded.
-	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = jump_velocity
-		
-	# Variable height: if jump is released while rising, cap the upward speed.
-	if velocity.y < 0.0 and not Input.is_action_pressed("jump"):
-		velocity.y = maxf(velocity.y, jump_velocity * jump_cut_ratio)
+	if direction != 0.0:
+		velocity.x = move_toward(velocity.x, direction * current_speed, acceleration * delta)
+	else:
+		velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
+
+	# Remember ground speed so a jump or ledge walk-off can carry it.
+	air_speed_cap = maxf(absf(velocity.x), move_speed)
+	dash_carry = false
+
+func _move_in_air(delta: float, direction: float) -> void:
+	# Hitting a wall kills the carried momentum.
+	if is_on_wall():
+		air_speed_cap = move_speed
+		dash_carry = false
+
+	# No input: drag slows you, harder after a dash.
+	if direction == 0.0:
+		var drag := dash_air_drag if dash_carry else air_drag
+		velocity.x = move_toward(velocity.x, 0.0, drag * delta)
+		# Momentum lost to drag can't be regained by pressing the key again.
+		air_speed_cap = minf(air_speed_cap, maxf(absf(velocity.x), move_speed))
+		return
+
+	# Pressing against your movement drops momentum and turns sharply.
+	var reversing := velocity.x != 0.0 and signf(direction) != signf(velocity.x)
+	var accel := air_acceleration
+	if reversing:
+		air_speed_cap = move_speed
+		dash_carry = false
+		accel = air_turn_acceleration
+
+	velocity.x = move_toward(velocity.x, direction * air_speed_cap, accel * delta)
 
 func _can_stand() -> bool:
 	return not test_move(global_transform, Vector2(0.0, -stand_clearance))
@@ -146,6 +183,10 @@ func _process_dash(delta: float) -> void:
 	dash_time_left -= delta
 	if dash_time_left <= 0.0:
 		is_dashing = false
+		# Carry the dash speed into the air.
+		if not is_on_floor():
+			air_speed_cap = maxf(air_speed_cap, absf(velocity.x))
+			dash_carry = true
 
 func _is_moving_horizontally() -> bool:
 	return absf(get_real_velocity().x) > 30.0
