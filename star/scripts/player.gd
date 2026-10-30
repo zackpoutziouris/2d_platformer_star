@@ -1,11 +1,11 @@
 extends CharacterBody2D
 
 @export_category("Movement")
-@export var move_speed: float = 140.0
+@export var move_speed: float = 100.0
 @export var acceleration: float = 1800.0
 @export var deceleration: float = 2200.0
-@export var jump_velocity: float = -280.0
-@export var gravity_multiplier: float = 0.80
+@export var jump_velocity: float = -250.0
+@export var gravity_multiplier: float = 0.65
 @export var jump_cut_ratio: float = 0.5
 @export var fall_gravity_multiplier: float = 1.1
 @export var max_fall_speed: float = 420.0
@@ -31,7 +31,7 @@ var is_crouching: bool = false
 
 @export_category("Sprint")
 @export var sprint_speed_multiplier: float = 1.4
-@export var sprint_animation_speed: float = 1.5
+@export var sprint_animation_speed: float = 2.0
 var is_sprinting: bool = false
 
 @onready var animation_handle: Node2D = $AnimationHandle
