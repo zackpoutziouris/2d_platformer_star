@@ -10,6 +10,13 @@ extends CharacterBody2D
 @export var fall_gravity_multiplier: float = 1.1
 @export var max_fall_speed: float = 420.0
 
+@export_category("Double Jump")
+@export var max_air_jumps: int = 1
+@export var double_jump_velocity: float = -250.0
+@export var double_jump_effect: PackedScene
+@export var effect_offset: Vector2 = Vector2.ZERO
+var air_jumps_left: int = 0
+
 @export_category("Air Control")
 @export var air_acceleration: float = 1000.0
 @export var air_turn_acceleration: float = 2400.0
@@ -50,6 +57,7 @@ func _physics_process(delta: float) -> void:
 	# Landing refills the air dash.
 	if is_on_floor():
 		air_dashes_left = max_air_dashes
+		air_jumps_left = max_air_jumps
 
 	var direction := Input.get_axis("move_left", "move_right")
 
@@ -85,8 +93,13 @@ func _process_movement(delta: float, direction: float) -> void:
 		_move_in_air(delta, direction)
 
 	# Jump only when grounded.
-	if Input.is_action_just_pressed("jump") and on_floor:
-		velocity.y = jump_velocity
+	if Input.is_action_just_pressed("jump"):
+		if on_floor:
+			velocity.y = jump_velocity
+		elif air_jumps_left > 0:
+			air_jumps_left -= 1
+			velocity.y = double_jump_velocity
+			_spawn_double_jump_effect()
 
 	# Variable height: if jump is released while rising, cap the upward speed.
 	if velocity.y < 0.0 and not Input.is_action_pressed("jump"):
@@ -190,6 +203,13 @@ func _process_dash(delta: float) -> void:
 
 func _is_moving_horizontally() -> bool:
 	return absf(get_real_velocity().x) > 30.0
+
+func _spawn_double_jump_effect() -> void:
+	if double_jump_effect == null:
+		return
+	var effect := double_jump_effect.instantiate() as Node2D
+	get_parent().add_child(effect)
+	effect.global_position = global_position + effect_offset
 
 func _update_animation() -> void:
 	# Mirror the handle around its origin to face the right way.

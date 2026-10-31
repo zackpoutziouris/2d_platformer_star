@@ -1,8 +1,8 @@
 [gd_scene format=4 uid="uid://bty2vrom6e8k0"]
 
-[ext_resource type="PackedScene" uid="uid://cr0culc5o4xie" path="res://scenes/player.tscn" id="2_dux70"]
+[ext_resource type="PackedScene" uid="uid://cr0culc5o4xie" path="res://scenes/player/player.tscn" id="2_dux70"]
 [ext_resource type="PackedScene" uid="uid://d4jln2ldd7m2g" path="res://scenes/world1/world1-tilemaplayer.tscn" id="2_lw3nu"]
-[ext_resource type="PackedScene" uid="uid://d2jatrpkkosts" path="res://scenes/PauseMenu.tscn" id="3_lw3nu"]
+[ext_resource type="PackedScene" uid="uid://d2jatrpkkosts" path="res://scenes/menus/PauseMenu.tscn" id="3_lw3nu"]
 
 [node name="World1Sandbox" type="Node2D" unique_id=2111167340]
 

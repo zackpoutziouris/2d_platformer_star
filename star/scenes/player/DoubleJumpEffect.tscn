@@ -1,0 +1,54 @@
+[gd_scene format=3 uid="uid://sekdydjbdp5t"]
+
+[ext_resource type="Script" uid="uid://c5ux62tny4y5g" path="res://scripts/double_jump_effect.gd" id="1_31t1i"]
+[ext_resource type="Texture2D" uid="uid://cmibncu5ca0t5" path="res://assets/Sprite-0004-Sheet.png" id="1_g1r8p"]
+
+[sub_resource type="Animation" id="Animation_31t1i"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Rect2(3, 360, 40, 16)]
+}
+
+[sub_resource type="Animation" id="Animation_xbmbp"]
+resource_name = "puff"
+length = 0.4
+step = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Rect2(3, 347, 40, 32), Rect2(51, 347, 40, 32)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_fv8n3"]
+_data = {
+&"RESET": SubResource("Animation_31t1i"),
+&"puff": SubResource("Animation_xbmbp")
+}
+
+[node name="DoubleJumpEffect" type="Node2D" unique_id=975087020]
+script = ExtResource("1_31t1i")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=209067937]
+libraries/ = SubResource("AnimationLibrary_fv8n3")
+autoplay = &"puff"
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=870594382]
+texture = ExtResource("1_g1r8p")
+region_enabled = true
+region_rect = Rect2(3, 360, 40, 16)
