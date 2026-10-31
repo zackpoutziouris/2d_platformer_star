@@ -24,11 +24,12 @@ var air_jumps_left: int = 0
 var air_speed_cap: float = 0.0
 
 @export_category("Dash")
-@export var dash_speed: float = 300.0
+@export var dash_speed: float = 210.0
 @export var dash_duration: float = 0.3
 @export var max_air_dashes: int = 1
 @export var dash_ignores_gravity: bool = true
 @export var dash_air_drag: float = 500.0
+var current_dash_speed: float = 0.0
 var dash_carry: bool = false
 
 @export_category("Crouch")
@@ -184,9 +185,13 @@ func _try_start_dash() -> void:
 
 	is_dashing = true
 	dash_time_left = dash_duration
+	
+	# Keep any speed above the dash speed, as long as it's in the dash direction.
+	var carried := maxf(velocity.x * facing, 0.0)
+	current_dash_speed = maxf(dash_speed, carried)
 
 func _process_dash(delta: float) -> void:
-	velocity.x = facing * dash_speed
+	velocity.x = facing * current_dash_speed
 
 	if dash_ignores_gravity:
 		velocity.y = 0.0
