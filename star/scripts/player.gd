@@ -37,6 +37,13 @@ var dash_carry: bool = false
 @export var stand_clearance: float = 3.0 # standing is 2px taller than crouching
 var is_crouching: bool = false
 
+@export_category("Crouch Jump")
+@export var crouch_jump_velocity: float = -300.0
+@export var crouch_jump_horizontal_speed: float = 90.0
+@export var crouch_jump_lock_time: float = 0.25
+var is_crouch_jumping: bool = false
+var crouch_jump_lock_left: float = 0.0
+
 @export_category("Sprint")
 @export var sprint_speed_multiplier: float = 1.4
 @export var sprint_animation_speed: float = 2.0
@@ -62,8 +69,8 @@ func _physics_process(delta: float) -> void:
 
 	var direction := Input.get_axis("move_left", "move_right")
 
-	# Facing is locked while dashing.
-	if direction != 0.0 and not is_dashing:
+	# Facing is locked while dashing and during the crouch jump lock.
+	if direction != 0.0 and not is_dashing and crouch_jump_lock_left <= 0.0:
 		facing = signf(direction)
 	
 	_update_crouch()
@@ -80,6 +87,7 @@ func _physics_process(delta: float) -> void:
 
 func _process_movement(delta: float, direction: float) -> void:
 	var on_floor := is_on_floor()
+	crouch_jump_lock_left = maxf(crouch_jump_lock_left - delta, 0.0)
 
 	# Gravity: stronger when falling, with a terminal velocity.
 	if not on_floor:
@@ -89,21 +97,28 @@ func _process_movement(delta: float, direction: float) -> void:
 		velocity.y = minf(velocity.y + g * delta, max_fall_speed)
 
 	if on_floor:
+		is_crouch_jumping = false
+		crouch_jump_lock_left = 0.0
 		_move_on_ground(delta, direction)
-	else:
+	elif crouch_jump_lock_left <= 0.0:
+		# Air control only returns once the launch lock has ended.
 		_move_in_air(delta, direction)
 
-	# Jump only when grounded.
 	if Input.is_action_just_pressed("jump"):
 		if on_floor:
-			velocity.y = jump_velocity
+			if is_crouching:
+				_start_crouch_jump()
+			else:
+				velocity.y = jump_velocity
 		elif air_jumps_left > 0:
 			air_jumps_left -= 1
+			is_crouch_jumping = false
+			crouch_jump_lock_left = 0.0
 			velocity.y = double_jump_velocity
 			_spawn_double_jump_effect()
 
-	# Variable height: if jump is released while rising, cap the upward speed.
-	if velocity.y < 0.0 and not Input.is_action_pressed("jump"):
+	# Variable height: not applied to crouch jumps.
+	if velocity.y < 0.0 and not is_crouch_jumping and not Input.is_action_pressed("jump"):
 		velocity.y = maxf(velocity.y, jump_velocity * jump_cut_ratio)
 
 func _move_on_ground(delta: float, direction: float) -> void:
@@ -161,6 +176,15 @@ func _update_crouch() -> void:
 	elif is_crouching and _can_stand():
 		is_crouching = false
 
+func _start_crouch_jump() -> void:
+	is_crouch_jumping = true
+	crouch_jump_lock_left = crouch_jump_lock_time
+	# Face the direction of travel (backwards from the old facing).
+	facing = -facing
+	velocity.y = crouch_jump_velocity
+	velocity.x = facing * crouch_jump_horizontal_speed
+	air_speed_cap = maxf(crouch_jump_horizontal_speed, move_speed)
+
 func _update_sprint(direction: float) -> void:
 	is_sprinting = (
 		Input.is_action_pressed("sprint")
@@ -184,6 +208,8 @@ func _try_start_dash() -> void:
 		air_dashes_left -= 1
 
 	is_dashing = true
+	is_crouch_jumping = false
+	crouch_jump_lock_left = 0.0
 	dash_time_left = dash_duration
 	
 	# Keep any speed above the dash speed, as long as it's in the dash direction.
