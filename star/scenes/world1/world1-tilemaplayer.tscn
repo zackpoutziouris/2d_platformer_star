@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://d4jln2ldd7m2g"]
 
-[ext_resource type="Texture2D" uid="uid://d2ea520i6pfbu" path="res://assets/world1-mercury-tileset.png" id="1_xsorx"]
+[ext_resource type="Texture2D" uid="uid://d2ea520i6pfbu" path="res://assets/tilemaps/world1-mercury-tileset.png" id="1_xsorx"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_cvsia"]
 texture = ExtResource("1_xsorx")

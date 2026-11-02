@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cmibncu5ca0t5"
-path="res://.godot/imported/player-star.png-5fd288f2a3ece15e282a2b78b63049b8.ctex"
+uid="uid://d2ea520i6pfbu"
+path="res://.godot/imported/world1-mercury-tileset.png-2b1e0f3a88e830353445a5c50901d422.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/player-star.png"
-dest_files=["res://.godot/imported/player-star.png-5fd288f2a3ece15e282a2b78b63049b8.ctex"]
+source_file="res://assets/tilemaps/world1-mercury-tileset.png"
+dest_files=["res://.godot/imported/world1-mercury-tileset.png-2b1e0f3a88e830353445a5c50901d422.ctex"]
 
 [params]
 

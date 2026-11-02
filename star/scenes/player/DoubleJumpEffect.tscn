@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://sekdydjbdp5t"]
 
 [ext_resource type="Script" uid="uid://c5ux62tny4y5g" path="res://scripts/double_jump_effect.gd" id="1_31t1i"]
-[ext_resource type="Texture2D" uid="uid://cmibncu5ca0t5" path="res://assets/player-star.png" id="1_g1r8p"]
+[ext_resource type="Texture2D" uid="uid://cmibncu5ca0t5" path="res://assets/player/player-star.png" id="1_g1r8p"]
 
 [sub_resource type="Animation" id="Animation_31t1i"]
 length = 0.001
