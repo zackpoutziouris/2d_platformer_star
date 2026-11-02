@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dbt2pruso0e4y"]
 
-[ext_resource type="Script" uid="uid://y8pnx234sqi" path="res://scripts/death_screen.gd" id="1_kkhek"]
+[ext_resource type="Script" uid="uid://y8pnx234sqi" path="res://scripts/menus/death_menu.gd" id="1_kkhek"]
 
 [node name="DeathScreen" type="CanvasLayer" unique_id=1880784973]
 layer = 15
