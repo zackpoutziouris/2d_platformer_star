@@ -24,69 +24,68 @@ tile_map_data = PackedByteArray("AAD//wAAAAABAAAAAAAAAAAAAAABAAAAAAABAAAAAAABAAA
 [node name="Spikes" type="Node2D" parent="." unique_id=1425779700]
 
 [node name="Spike" parent="Spikes" unique_id=693269545 instance=ExtResource("4_kgtuq")]
-position = Vector2(92, -8)
+position = Vector2(92, -2)
 scale = Vector2(-1, 1)
 
 [node name="Spike2" parent="Spikes" unique_id=1373627208 instance=ExtResource("4_kgtuq")]
-position = Vector2(132, -8)
+position = Vector2(132, -2)
 
 [node name="Spike3" parent="Spikes" unique_id=1996535348 instance=ExtResource("4_kgtuq")]
-position = Vector2(84, -8)
+position = Vector2(84, -2)
 
 [node name="Spike4" parent="Spikes" unique_id=1862120858 instance=ExtResource("4_kgtuq")]
-position = Vector2(156, -8)
+position = Vector2(156, -2)
 scale = Vector2(-1, 1)
 
 [node name="Spike5" parent="Spikes" unique_id=1779148310 instance=ExtResource("4_kgtuq")]
-position = Vector2(196, -8)
+position = Vector2(196, -2)
 
 [node name="Spike6" parent="Spikes" unique_id=1720042085 instance=ExtResource("4_kgtuq")]
-position = Vector2(204, -8)
+position = Vector2(204, -2)
 
 [node name="Spike7" parent="Spikes" unique_id=2029188240 instance=ExtResource("4_kgtuq")]
-position = Vector2(260, -8)
+position = Vector2(260, -2)
 
 [node name="Spike8" parent="Spikes" unique_id=1829836436 instance=ExtResource("4_kgtuq")]
-position = Vector2(216, -44)
+position = Vector2(222, -44)
 rotation = -1.5707964
-scale = Vector2(-1, 1)
 
 [node name="Spike9" parent="Spikes" unique_id=765825438 instance=ExtResource("4_kgtuq")]
-position = Vector2(124, -24)
+position = Vector2(124, -18)
 scale = Vector2(-1, 1)
 
 [node name="Spike10" parent="Spikes" unique_id=145793829 instance=ExtResource("4_kgtuq")]
-position = Vector2(164, -40)
+position = Vector2(164, -34)
 
 [node name="Spike11" parent="Spikes" unique_id=1489733265 instance=ExtResource("4_kgtuq")]
-position = Vector2(140, -8)
+position = Vector2(140, -2)
 
 [node name="Spike12" parent="Spikes" unique_id=2141604014 instance=ExtResource("4_kgtuq")]
-position = Vector2(148, -8)
+position = Vector2(148, -2)
 scale = Vector2(-1, 1)
 
 [node name="Spike13" parent="Spikes" unique_id=157168405 instance=ExtResource("4_kgtuq")]
-position = Vector2(212, -8)
+position = Vector2(212, -2)
 scale = Vector2(-1, 1)
 
 [node name="Spike14" parent="Spikes" unique_id=2103581496 instance=ExtResource("4_kgtuq")]
-position = Vector2(220, -8)
+position = Vector2(220, -2)
 scale = Vector2(-1, 1)
 
 [node name="Spike15" parent="Spikes" unique_id=1464903996 instance=ExtResource("4_kgtuq")]
-position = Vector2(268, -8)
+position = Vector2(268, -2)
 
 [node name="Spike16" parent="Spikes" unique_id=206175554 instance=ExtResource("4_kgtuq")]
-position = Vector2(276, -8)
+position = Vector2(276, -2)
 
 [node name="Spike17" parent="Spikes" unique_id=1806453321 instance=ExtResource("4_kgtuq")]
-position = Vector2(284, -8)
+position = Vector2(284, -2)
 scale = Vector2(-1, 1)
 
 [node name="Spike18" parent="Spikes" unique_id=550441005 instance=ExtResource("4_kgtuq")]
-position = Vector2(292, -8)
+position = Vector2(292, -2)
 scale = Vector2(-1, 1)
 
 [node name="Spike19" parent="Spikes" unique_id=492990887 instance=ExtResource("4_kgtuq")]
-position = Vector2(300, -8)
+position = Vector2(300, -2)
 scale = Vector2(-1, 1)
