@@ -1,5 +1,19 @@
 extends CharacterBody2D
 
+signal health_changed(new_health: int)
+signal died
+
+@export_category("Health")
+@export var max_health: int = 3
+@export var invulnerability_time: float = 1.5
+@export var flash_interval: float = 0.1
+@export var death_fade_time: float = 0.8
+
+var health: int = 0
+var is_invulnerable: bool = false
+var invulnerability_left: float = 0.0
+var is_dead: bool = false
+
 @export_category("Movement")
 @export var move_speed: float = 100.0
 @export var acceleration: float = 1800.0
@@ -60,6 +74,54 @@ var facing: float = 1.0
 var is_dashing: bool = false
 var dash_time_left: float = 0.0
 var air_dashes_left: int = 0
+
+func _enter_tree() -> void:
+	# Registered early so the HUD and death screen can find the player
+	# no matter what order the nodes are in.
+	add_to_group("player")
+
+func _ready() -> void:
+	health = max_health
+
+func _process(delta: float) -> void:
+	if not is_invulnerable:
+		return
+
+	invulnerability_left -= delta
+	if invulnerability_left <= 0.0:
+		is_invulnerable = false
+		animation_handle.modulate.a = 1.0
+		return
+
+	# Blink by toggling opacity at a fixed interval.
+	var visible_phase := int(invulnerability_left / flash_interval) % 2 == 0
+	animation_handle.modulate.a = 1.0 if visible_phase else 0.3
+
+func take_damage(amount: int = 1) -> void:
+	if is_invulnerable or is_dead:
+		return
+
+	health = maxi(health - amount, 0)
+	health_changed.emit(health)
+
+	if health == 0:
+		_die()
+	else:
+		is_invulnerable = true
+		invulnerability_left = invulnerability_time
+
+func _die() -> void:
+	is_dead = true
+	is_invulnerable = false
+	set_physics_process(false)
+	set_process(false)
+	velocity = Vector2.ZERO
+
+	# Fade the sprite out, then tell the death screen to appear.
+	animation_handle.modulate.a = 1.0
+	var tween := create_tween()
+	tween.tween_property(animation_handle, "modulate:a", 0.0, death_fade_time)
+	tween.tween_callback(func() -> void: died.emit())
 
 func _physics_process(delta: float) -> void:
 	# Landing refills the air dash.

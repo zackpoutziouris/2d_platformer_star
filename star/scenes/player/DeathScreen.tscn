@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://dbt2pruso0e4y"]
+
+[ext_resource type="Script" uid="uid://y8pnx234sqi" path="res://scripts/death_screen.gd" id="1_kkhek"]
+
+[node name="DeathScreen" type="CanvasLayer" unique_id=1880784973]
+layer = 15
+script = ExtResource("1_kkhek")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1873336675]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.19607843)
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=115278887]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=202383552]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer" unique_id=181701128]
+layout_mode = 2
+text = "You Died."
+
+[node name="RetryButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1980392992]
+layout_mode = 2
+text = "Retry"
+
+[node name="MainMenuButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1259952753]
+layout_mode = 2
+text = "Main Menu"

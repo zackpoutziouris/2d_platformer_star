@@ -13,12 +13,18 @@ func _ready() -> void:
 	main_menu_button.pressed.connect(_on_main_menu_pressed)
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause"):
-		if get_tree().paused:
-			resume()
-		else:
-			pause()
-		get_viewport().set_input_as_handled()
+	if not event.is_action_pressed("pause"):
+		return
+
+	if get_tree().paused:
+		resume()
+	elif not _player_is_dead():
+		pause()
+	get_viewport().set_input_as_handled()
+
+func _player_is_dead() -> bool:
+	var player = get_tree().get_first_node_in_group("player")
+	return player != null and player.is_dead
 
 func pause() -> void:
 	get_tree().paused = true
