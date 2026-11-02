@@ -50,6 +50,7 @@ var dash_carry: bool = false
 @export var crouch_speed_multiplier: float = 0.5
 @export var stand_clearance: float = 3.0 # standing is 2px taller than crouching
 var is_crouching: bool = false
+var facing_from_crouch_jump: bool = false
 
 @export_category("Crouch Jump")
 @export var crouch_jump_velocity: float = -300.0
@@ -134,6 +135,7 @@ func _physics_process(delta: float) -> void:
 	# Facing is locked while dashing and during the crouch jump lock.
 	if direction != 0.0 and not is_dashing and crouch_jump_lock_left <= 0.0:
 		facing = signf(direction)
+		facing_from_crouch_jump = false
 	
 	_update_crouch()
 	_update_sprint(direction)
@@ -241,8 +243,13 @@ func _update_crouch() -> void:
 func _start_crouch_jump() -> void:
 	is_crouch_jumping = true
 	crouch_jump_lock_left = crouch_jump_lock_time
-	# Face the direction of travel (backwards from the old facing).
-	facing = -facing
+
+	# Facing set by a previous crouch jump already points the way of travel,
+	# so keep it. Otherwise launch backwards from the current facing.
+	if not facing_from_crouch_jump:
+		facing = -facing
+	facing_from_crouch_jump = true
+
 	velocity.y = crouch_jump_velocity
 	velocity.x = facing * crouch_jump_horizontal_speed
 	air_speed_cap = maxf(crouch_jump_horizontal_speed, move_speed)
@@ -256,11 +263,7 @@ func _update_sprint(direction: float) -> void:
 	)
 
 func _try_start_dash() -> void:
-	if is_dashing or not Input.is_action_just_pressed("dash"):
-		return
-	
-	# Can't dash out of a crouch if there's no room to stand.
-	if is_crouching and not _can_stand():
+	if is_dashing or is_crouching or not Input.is_action_just_pressed("dash"):
 		return
 	
 	# Dashing on the ground is free; dashing in the air uses a charge.
