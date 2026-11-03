@@ -6,7 +6,7 @@ signal died
 @export_category("Health")
 @export var max_health: int = 3
 @export var invulnerability_time: float = 1.5
-@export var flash_interval: float = 0.1
+@export var flash_interval: float = 0.05
 @export var death_fade_time: float = 0.8
 
 var health: int = 0
