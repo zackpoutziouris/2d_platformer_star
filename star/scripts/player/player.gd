@@ -16,8 +16,9 @@ var is_dead: bool = false
 
 @export_category("Movement")
 @export var move_speed: float = 100.0
-@export var acceleration: float = 1800.0
-@export var deceleration: float = 2200.0
+@export var acceleration: float = 600.0
+@export var turn_acceleration: float = 1200.0
+@export var deceleration: float = 900.0
 @export var jump_velocity: float = -250.0
 @export var gravity_multiplier: float = 0.65
 @export var jump_cut_ratio: float = 0.5
@@ -32,8 +33,8 @@ var is_dead: bool = false
 var air_jumps_left: int = 0
 
 @export_category("Air Control")
-@export var air_acceleration: float = 1000.0
-@export var air_turn_acceleration: float = 2400.0
+@export var air_acceleration: float = 600.0
+@export var air_turn_acceleration: float = 1200.0
 @export var air_drag: float = 125.0
 var air_speed_cap: float = 0.0
 
@@ -47,7 +48,7 @@ var current_dash_speed: float = 0.0
 var dash_carry: bool = false
 
 @export_category("Crouch")
-@export var crouch_speed_multiplier: float = 0.5
+@export var crouch_speed_multiplier: float = 0.3
 @export var stand_clearance: float = 3.0 # standing is 2px taller than crouching
 var is_crouching: bool = false
 var facing_from_crouch_jump: bool = false
@@ -193,7 +194,11 @@ func _move_on_ground(delta: float, direction: float) -> void:
 		current_speed *= sprint_speed_multiplier
 
 	if direction != 0.0:
-		velocity.x = move_toward(velocity.x, direction * current_speed, acceleration * delta)
+		# Reversing uses a stronger rate so turning around feels responsive.
+		var accel := acceleration
+		if velocity.x != 0.0 and signf(direction) != signf(velocity.x):
+			accel = turn_acceleration
+		velocity.x = move_toward(velocity.x, direction * current_speed, accel * delta)
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
 
@@ -298,7 +303,7 @@ func _process_dash(delta: float) -> void:
 			dash_carry = true
 
 func _is_moving_horizontally() -> bool:
-	return absf(get_real_velocity().x) > 30.0
+	return absf(get_real_velocity().x) > 20.0
 
 func _spawn_double_jump_effect() -> void:
 	if double_jump_effect == null:
