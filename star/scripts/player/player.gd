@@ -38,6 +38,12 @@ var air_jumps_left: int = 0
 @export var air_drag: float = 125.0
 var air_speed_cap: float = 0.0
 
+@export_category("Dive")
+@export var dive_speed: float = 200.0
+@export var dive_horizontal_speed: float = 25.0
+@export var dive_horizontal_acceleration: float = 300.0
+var is_diving: bool = false
+
 @export_category("Dash")
 @export var dash_speed: float = 210.0
 @export var dash_duration: float = 0.3
@@ -130,6 +136,7 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor():
 		air_dashes_left = max_air_dashes
 		air_jumps_left = max_air_jumps
+		is_diving = false
 
 	var direction := Input.get_axis("move_left", "move_right")
 
@@ -140,9 +147,12 @@ func _physics_process(delta: float) -> void:
 	
 	_update_crouch()
 	_update_sprint(direction)
+	_try_start_dive()
 	_try_start_dash()
 
-	if is_dashing:
+	if is_diving:
+		_process_dive(delta, direction)
+	elif is_dashing:
 		_process_dash(delta)
 	else:
 		_process_movement(delta, direction)
@@ -267,8 +277,31 @@ func _update_sprint(direction: float) -> void:
 		and not is_dashing
 	)
 
+func _try_start_dive() -> void:
+	if is_diving or is_on_floor() or not Input.is_action_just_pressed("dive"):
+		return
+
+	# Cancel everything else, including a dash or a crouch jump.
+	is_diving = true
+	is_dashing = false
+	is_crouch_jumping = false
+	crouch_jump_lock_left = 0.0
+	dash_carry = false
+
+	velocity.x = 0.0
+	velocity.y = dive_speed
+
+func _process_dive(delta: float, direction: float) -> void:
+	# Fixed downward speed, with only a small amount of sideways control.
+	velocity.y = dive_speed
+	velocity.x = move_toward(
+		velocity.x,
+		direction * dive_horizontal_speed,
+		dive_horizontal_acceleration * delta
+	)
+
 func _try_start_dash() -> void:
-	if is_dashing or is_crouching or not Input.is_action_just_pressed("dash"):
+	if is_dashing or is_crouching or is_diving or not Input.is_action_just_pressed("dash"):
 		return
 	
 	# Dashing on the ground is free; dashing in the air uses a charge.
@@ -320,6 +353,8 @@ func _update_animation() -> void:
 	# Dash overrides everything for its whole duration.
 	if is_dashing:
 		animation_player.play("dash")
+	elif is_diving:
+		animation_player.play("dive")
 	elif is_crouching:
 		if _is_moving_horizontally():
 			animation_player.play("crouch-walk")
