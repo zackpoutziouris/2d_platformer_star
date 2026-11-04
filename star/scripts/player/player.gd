@@ -52,6 +52,12 @@ var glide_blocked: bool = false
 @export var dive_horizontal_acceleration: float = 300.0
 var is_diving: bool = false
 
+const PLATFORM_LAYER := 2
+
+@export_category("Drop Through")
+@export var drop_through_time: float = 0.3
+var drop_through_left: float = 0.0
+
 @export_category("Dash")
 @export var dash_speed: float = 210.0
 @export var dash_duration: float = 0.3
@@ -157,6 +163,7 @@ func _physics_process(delta: float) -> void:
 	
 	_update_crouch()
 	_update_sprint(direction)
+	_update_drop_through(delta)
 	_try_start_dive()
 	_try_start_dash()
 	_update_glide()
@@ -345,6 +352,18 @@ func _process_dive(delta: float, direction: float) -> void:
 		dive_horizontal_acceleration * delta
 	)
 
+func _update_drop_through(delta: float) -> void:
+	# While dropping, ignore platforms, then switch them back on.
+	if drop_through_left > 0.0:
+		drop_through_left -= delta
+		if drop_through_left <= 0.0:
+			set_collision_mask_value(PLATFORM_LAYER, true)
+		return
+
+	if is_on_floor() and Input.is_action_just_pressed("dive"):
+		drop_through_left = drop_through_time
+		set_collision_mask_value(PLATFORM_LAYER, false)
+
 func _try_start_dash() -> void:
 	if is_dashing or is_crouching or is_diving or not Input.is_action_just_pressed("dash"):
 		return
@@ -382,7 +401,10 @@ func _process_dash(delta: float) -> void:
 			dash_carry = true
 
 func _is_moving_horizontally() -> bool:
-	return absf(get_real_velocity().x) > 20.0
+	var v := get_real_velocity().x
+	if is_on_floor():
+		v -= get_platform_velocity().x
+	return absf(v) > 20.0
 
 func _spawn_double_jump_effect() -> void:
 	if double_jump_effect == null:

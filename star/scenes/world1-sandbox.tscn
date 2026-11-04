@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://pcdndgoewfmj" path="res://scenes/level-assets/Spike.tscn" id="4_kgtuq"]
 [ext_resource type="PackedScene" uid="uid://c1lpja1n8f14y" path="res://scenes/player/HUD.tscn" id="5_0j1hr"]
 [ext_resource type="PackedScene" uid="uid://dbt2pruso0e4y" path="res://scenes/menus/DeathMenu.tscn" id="6_bdccg"]
+[ext_resource type="PackedScene" uid="uid://ddjlwnduxkwlp" path="res://scenes/level-assets/MovingPlatform.tscn" id="7_bdccg"]
 
 [node name="World1Sandbox" type="Node2D" unique_id=2111167340]
 
@@ -89,3 +90,13 @@ scale = Vector2(-1, 1)
 [node name="Spike19" parent="Spikes" unique_id=492990887 instance=ExtResource("4_kgtuq")]
 position = Vector2(300, -2)
 scale = Vector2(-1, 1)
+
+[node name="MovingPlatforms" type="Node2D" parent="." unique_id=579808463]
+
+[node name="MovingPlatform" parent="MovingPlatforms" unique_id=702974356 instance=ExtResource("7_bdccg")]
+position = Vector2(40, -32)
+travel = Vector2(32, 0)
+
+[node name="MovingPlatform2" parent="MovingPlatforms" unique_id=1611994823 instance=ExtResource("7_bdccg")]
+position = Vector2(112, -64)
+travel = Vector2(0, 32)
