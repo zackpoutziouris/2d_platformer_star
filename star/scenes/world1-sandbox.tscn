@@ -95,8 +95,14 @@ scale = Vector2(-1, 1)
 
 [node name="MovingPlatform" parent="MovingPlatforms" unique_id=702974356 instance=ExtResource("7_bdccg")]
 position = Vector2(40, -32)
+width = 32.0
 travel = Vector2(32, 0)
 
 [node name="MovingPlatform2" parent="MovingPlatforms" unique_id=1611994823 instance=ExtResource("7_bdccg")]
 position = Vector2(112, -64)
+travel = Vector2(0, 32)
+
+[node name="MovingPlatform3" parent="MovingPlatforms" unique_id=1886681285 instance=ExtResource("7_bdccg")]
+position = Vector2(160, -96)
+width = 8.0
 travel = Vector2(0, 32)

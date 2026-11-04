@@ -11,11 +11,17 @@ collision_layer = 2
 collision_mask = 0
 script = ExtResource("1_uu7nh")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1575528908]
-texture = ExtResource("1_12qpf")
-region_enabled = true
-region_rect = Rect2(0, 12, 16, 4)
-
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2062760640]
 shape = SubResource("RectangleShape2D_uu7nh")
 one_way_collision = true
+
+[node name="NinePatchRect" type="NinePatchRect" parent="." unique_id=1698572015]
+offset_left = -8.0
+offset_top = -2.0
+offset_right = 8.0
+offset_bottom = 2.0
+texture = ExtResource("1_12qpf")
+region_rect = Rect2(0, 12, 16, 4)
+patch_margin_left = 2
+patch_margin_right = 2
+axis_stretch_horizontal = 1
