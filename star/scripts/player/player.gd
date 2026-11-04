@@ -38,6 +38,14 @@ var air_jumps_left: int = 0
 @export var air_drag: float = 125.0
 var air_speed_cap: float = 0.0
 
+@export_category("Glide")
+@export var glide_fall_speed: float = 40.0
+@export var glide_horizontal_acceleration: float = 400.0
+@export var glide_vertical_acceleration: float = 1200.0
+@export var glide_max_entry_fall_speed: float = 500.0
+var is_gliding: bool = false
+var glide_blocked: bool = false
+
 @export_category("Dive")
 @export var dive_speed: float = 200.0
 @export var dive_horizontal_speed: float = 25.0
@@ -137,6 +145,8 @@ func _physics_process(delta: float) -> void:
 		air_dashes_left = max_air_dashes
 		air_jumps_left = max_air_jumps
 		is_diving = false
+		is_gliding = false
+		glide_blocked = false
 
 	var direction := Input.get_axis("move_left", "move_right")
 
@@ -149,6 +159,7 @@ func _physics_process(delta: float) -> void:
 	_update_sprint(direction)
 	_try_start_dive()
 	_try_start_dash()
+	_update_glide()
 
 	if is_diving:
 		_process_dive(delta, direction)
@@ -164,13 +175,16 @@ func _process_movement(delta: float, direction: float) -> void:
 	var on_floor := is_on_floor()
 	crouch_jump_lock_left = maxf(crouch_jump_lock_left - delta, 0.0)
 
-	# Gravity: stronger when falling, with a terminal velocity.
-	if not on_floor:
+	# Vertical: glide replaces gravity while active.
+	if is_gliding:
+		_move_glide(delta)
+	elif not on_floor:
 		var g := gravity * gravity_multiplier
 		if velocity.y > 0.0:
 			g *= fall_gravity_multiplier
 		velocity.y = minf(velocity.y + g * delta, max_fall_speed)
 
+	# Horizontal: same rules whether gliding or not.
 	if on_floor:
 		is_crouch_jumping = false
 		crouch_jump_lock_left = 0.0
@@ -187,6 +201,7 @@ func _process_movement(delta: float, direction: float) -> void:
 				velocity.y = jump_velocity
 		elif air_jumps_left > 0:
 			air_jumps_left -= 1
+			is_gliding = false
 			is_crouch_jumping = false
 			crouch_jump_lock_left = 0.0
 			velocity.y = double_jump_velocity
@@ -277,12 +292,42 @@ func _update_sprint(direction: float) -> void:
 		and not is_dashing
 	)
 
+func _update_glide() -> void:
+	var holding_jump := Input.is_action_pressed("jump")
+
+	# Releasing jump re-arms gliding, so you can glide as many times as you like.
+	if not holding_jump:
+		glide_blocked = false
+
+	if is_on_floor() or is_dashing or is_diving or not holding_jump or glide_blocked:
+		is_gliding = false
+		return
+
+	if is_gliding:
+		return
+
+	# Start only when falling, and not too fast.
+	var spending_air_jump := Input.is_action_just_pressed("jump") and air_jumps_left > 0
+	if (
+		velocity.y >= 0.0
+		and velocity.y <= glide_max_entry_fall_speed
+		and crouch_jump_lock_left <= 0.0
+		and not spending_air_jump
+	):
+		is_gliding = true
+
+func _move_glide(delta: float) -> void:
+	# Ease down to a slow, steady fall.
+	velocity.y = move_toward(velocity.y, glide_fall_speed, glide_vertical_acceleration * delta)
+
 func _try_start_dive() -> void:
 	if is_diving or is_on_floor() or not Input.is_action_just_pressed("dive"):
 		return
 
 	# Cancel everything else, including a dash or a crouch jump.
 	is_diving = true
+	is_gliding = false
+	glide_blocked = true
 	is_dashing = false
 	is_crouch_jumping = false
 	crouch_jump_lock_left = 0.0
@@ -311,6 +356,7 @@ func _try_start_dash() -> void:
 		air_dashes_left -= 1
 
 	is_dashing = true
+	is_gliding = false
 	is_crouch_jumping = false
 	crouch_jump_lock_left = 0.0
 	dash_time_left = dash_duration
@@ -355,6 +401,8 @@ func _update_animation() -> void:
 		animation_player.play("dash")
 	elif is_diving:
 		animation_player.play("dive")
+	elif is_gliding:
+		animation_player.play("glide")
 	elif is_crouching:
 		if _is_moving_horizontally():
 			animation_player.play("crouch-walk")
