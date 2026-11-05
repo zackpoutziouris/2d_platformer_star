@@ -14,6 +14,10 @@ config/name="star"
 run/main_scene="uid://do0oqvxglvg0b"
 config/features=PackedStringArray("4.6", "Forward Plus")
 
+[autoload]
+
+GameStats="*uid://crlck6v3aq4yf"
+
 [display]
 
 window/size/mode=3

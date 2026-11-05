@@ -134,6 +134,7 @@ func take_damage(amount: int = 1) -> void:
 
 func _die() -> void:
 	is_dead = true
+	GameStats.add_death()
 	is_invulnerable = false
 	set_physics_process(false)
 	set_process(false)
