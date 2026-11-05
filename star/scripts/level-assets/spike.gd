@@ -2,6 +2,10 @@ extends Area2D
 
 @export var damage: int = 1
 
+func _ready() -> void:
+	if not Engine.is_editor_hint():
+		add_to_group("spikes")
+
 func _physics_process(_delta: float) -> void:
 	# Checked every frame so standing in spikes hurts again
 	# as soon as the invulnerability ends.

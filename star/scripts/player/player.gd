@@ -38,6 +38,21 @@ var air_jumps_left: int = 0
 @export var air_drag: float = 125.0
 var air_speed_cap: float = 0.0
 
+@export_category("Wall Slide")
+@export var wall_slide_speed: float = 40.0
+@export var wall_slide_acceleration: float = 1200.0
+@export var wall_stick_speed: float = 30.0
+@export var wall_grace_time: float = 0.1
+var is_wall_sliding: bool = false
+var wall_grace_left: float = 0.0
+var wall_side: float = 0.0
+
+@export_category("Wall Jump")
+@export var wall_jump_velocity: float = -250.0
+@export var wall_jump_horizontal_speed: float = 110.0
+@export var wall_jump_lock_time: float = 0.18
+var wall_jump_lock_left: float = 0.0
+
 @export_category("Glide")
 @export var glide_fall_speed: float = 40.0
 @export var glide_horizontal_acceleration: float = 400.0
@@ -154,19 +169,27 @@ func _physics_process(delta: float) -> void:
 		is_diving = false
 		is_gliding = false
 		glide_blocked = false
+		is_wall_sliding = false
+		wall_grace_left = 0.0
 
 	var direction := Input.get_axis("move_left", "move_right")
 
-	# Facing is locked while dashing and during the crouch jump lock.
-	if direction != 0.0 and not is_dashing and crouch_jump_lock_left <= 0.0:
+	# Facing is locked while dashing and during the crouch jump / wall jump locks.
+	if (
+		direction != 0.0
+		and not is_dashing
+		and crouch_jump_lock_left <= 0.0
+		and wall_jump_lock_left <= 0.0
+	):
 		facing = signf(direction)
 		facing_from_crouch_jump = false
-	
+
 	_update_crouch()
 	_update_sprint(direction)
 	_update_drop_through(delta)
 	_try_start_dive()
 	_try_start_dash()
+	_update_wall_slide(delta, direction)
 	_update_glide()
 
 	if is_diving:
@@ -182,9 +205,12 @@ func _physics_process(delta: float) -> void:
 func _process_movement(delta: float, direction: float) -> void:
 	var on_floor := is_on_floor()
 	crouch_jump_lock_left = maxf(crouch_jump_lock_left - delta, 0.0)
+	wall_jump_lock_left = maxf(wall_jump_lock_left - delta, 0.0)
 
-	# Vertical: glide replaces gravity while active.
-	if is_gliding:
+	# Vertical: wall slide and glide replace gravity while active.
+	if is_wall_sliding:
+		velocity.y = move_toward(velocity.y, wall_slide_speed, wall_slide_acceleration * delta)
+	elif is_gliding:
 		_move_glide(delta)
 	elif not on_floor:
 		var g := gravity * gravity_multiplier
@@ -192,13 +218,18 @@ func _process_movement(delta: float, direction: float) -> void:
 			g *= fall_gravity_multiplier
 		velocity.y = minf(velocity.y + g * delta, max_fall_speed)
 
-	# Horizontal: same rules whether gliding or not.
+	# Horizontal.
 	if on_floor:
 		is_crouch_jumping = false
 		crouch_jump_lock_left = 0.0
+		wall_jump_lock_left = 0.0
 		_move_on_ground(delta, direction)
-	elif crouch_jump_lock_left <= 0.0:
-		# Air control only returns once the launch lock has ended.
+	elif is_wall_sliding:
+		# A steady push into the wall keeps contact from flickering.
+		velocity.x = -wall_side * wall_stick_speed
+		air_speed_cap = move_speed
+		dash_carry = false
+	elif crouch_jump_lock_left <= 0.0 and wall_jump_lock_left <= 0.0:
 		_move_in_air(delta, direction)
 
 	if Input.is_action_just_pressed("jump"):
@@ -207,6 +238,8 @@ func _process_movement(delta: float, direction: float) -> void:
 				_start_crouch_jump()
 			else:
 				velocity.y = jump_velocity
+		elif is_wall_sliding:
+			_start_wall_jump()
 		elif air_jumps_left > 0:
 			air_jumps_left -= 1
 			is_gliding = false
@@ -263,6 +296,59 @@ func _move_in_air(delta: float, direction: float) -> void:
 
 	velocity.x = move_toward(velocity.x, direction * air_speed_cap, accel * delta)
 
+func _update_wall_slide(delta: float, direction: float) -> void:
+	var on_wall := not is_on_floor() and is_on_wall()
+
+	if on_wall and not _wall_has_spikes():
+		# Remember the wall briefly so one frame of lost contact can't end the slide.
+		wall_grace_left = wall_grace_time
+		wall_side = signf(get_wall_normal().x)
+	elif on_wall:
+		wall_grace_left = 0.0 # spiked wall: no sliding
+	else:
+		wall_grace_left = maxf(wall_grace_left - delta, 0.0)
+
+	is_wall_sliding = (
+		wall_grace_left > 0.0
+		and not is_on_floor()
+		and direction != 0.0
+		and signf(direction) == -wall_side
+		and velocity.y >= 0.0
+		and not is_dashing
+		and not is_diving
+		and crouch_jump_lock_left <= 0.0
+		and wall_jump_lock_left <= 0.0
+	)
+
+	if is_wall_sliding:
+		is_gliding = false
+		# Wall sliding refills the double jump and air dash.
+		air_jumps_left = max_air_jumps
+		air_dashes_left = max_air_dashes
+
+func _wall_has_spikes() -> bool:
+	for spike in get_tree().get_nodes_in_group("spikes"):
+		if spike is Area2D and spike.overlaps_body(self):
+			return true
+	return false
+
+func _start_wall_jump() -> void:
+	# The wall normal points away from the wall, which is the way we want to go.
+	var away := wall_side
+
+	facing = away
+	facing_from_crouch_jump = false
+	is_wall_sliding = false
+	is_gliding = false
+	is_crouch_jumping = false
+	crouch_jump_lock_left = 0.0
+	wall_grace_left = 0.0
+	wall_jump_lock_left = wall_jump_lock_time
+
+	velocity.x = away * wall_jump_horizontal_speed
+	velocity.y = wall_jump_velocity
+	air_speed_cap = maxf(wall_jump_horizontal_speed, move_speed)
+
 func _can_stand() -> bool:
 	return not test_move(global_transform, Vector2(0.0, -stand_clearance))
 
@@ -307,7 +393,7 @@ func _update_glide() -> void:
 	if not holding_jump:
 		glide_blocked = false
 
-	if is_on_floor() or is_dashing or is_diving or not holding_jump or glide_blocked:
+	if is_on_floor() or is_dashing or is_diving or is_wall_sliding or not holding_jump or glide_blocked:
 		is_gliding = false
 		return
 
@@ -339,6 +425,7 @@ func _try_start_dive() -> void:
 	is_dashing = false
 	is_crouch_jumping = false
 	crouch_jump_lock_left = 0.0
+	wall_jump_lock_left = 0.0
 	dash_carry = false
 
 	velocity.x = 0.0
@@ -379,6 +466,7 @@ func _try_start_dash() -> void:
 	is_gliding = false
 	is_crouch_jumping = false
 	crouch_jump_lock_left = 0.0
+	wall_jump_lock_left = 0.0
 	dash_time_left = dash_duration
 	
 	# Keep any speed above the dash speed, as long as it's in the dash direction.
@@ -424,6 +512,8 @@ func _update_animation() -> void:
 		animation_player.play("dash")
 	elif is_diving:
 		animation_player.play("dive")
+	elif is_wall_sliding:
+		animation_player.play("wall-slide")
 	elif is_gliding:
 		animation_player.play("glide")
 	elif is_crouching:
