@@ -133,6 +133,7 @@ rotation = -1.5707964
 position = Vector2(40, -32)
 width = 32.0
 travel = Vector2(32, 0)
+speed = 100.0
 
 [node name="MovingPlatform2" parent="MovingPlatforms" unique_id=1611994823 instance=ExtResource("7_bdccg")]
 position = Vector2(112, -64)
